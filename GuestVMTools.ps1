@@ -97,22 +97,45 @@ if (!$mode){
       Title      = 'Please select a mode and click OK'
   }
   
-  $modes = "Report","Change Ram","Add-Disk","Remove-Disk","Extend-Disk"
-  
-  $mode = $modes | Out-GridView @GridArguments
+  $modes = ,,"Add-Disk","Remove-Disk","Extend-Disk"
+
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Report"
+  $custom | add-member NoteProperty Description "Generate a report for the VM, host details, output options."
+  [array]$Modesobj += $custom
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Change Ram"
+  $custom | add-member NoteProperty Description "Increase the amount of ram on a running VM"
+  [array]$Modesobj += $custom
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Add-Disk"
+  $custom | add-member NoteProperty Description "Add a disk to a running VM"
+  [array]$Modesobj += $custom  
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Extend-Disk"
+  $custom | add-member NoteProperty Description "Increase the Disk size of an existing disk."
+  [array]$Modesobj += $custom  
+  if ($target -ne "Local"){
+    $custom = New-Object -Type PSObject
+    $custom | add-member NoteProperty Mode "Secure-Boot"
+    $custom | add-member NoteProperty Description "Enable Secure boot on another VM. (powered off state is required)"
+    [array]$Modesobj += $custom
+  } 
+  $mode = ($Modesobj | Out-GridView @GridArguments).mode
 } 
 
 $vars = @{
   PCClusterIP = $PCClusterIP
   PCCreds     = $PCCreds
   VMDetail    = $VMdetail
-  CLUUID      = $VMUUID
+  CLUUID      = $CLUUID
 }
 
 switch($mode) {
    "Report"       { Wrap-VMGuest-Report -Vars $Vars     } 
    "Change Ram"   { Wrap-VMGuest-Ram -Vars $Vars        } 
-   "Add-Disks"    { Wrap-VMGuest-AddDisk -Vars $vars    }
+   "Add-Disk"     { Wrap-VMGuest-AddDisk -Vars $vars    }
    "Remove-Disk"  { Wrap-VMGuest-RemoveDisk -Vars $Vars } 	
-   "Extend-Disk"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }  	
+   "Extend-Disk"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }
+   "Secure-Boot"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }
 }

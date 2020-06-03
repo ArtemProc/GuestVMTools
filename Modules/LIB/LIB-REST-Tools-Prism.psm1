@@ -627,6 +627,67 @@ Function REST-Get-PE-Hosts {
   Return $task
 } 
 
+Function REST-Get-PRX-Hosts {
+  Param (
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $CLUUID
+  )
+
+  write-log -message "Building Credential object"
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Executing Get Hosts Query"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v1/hosts?proxyClusterUuid=$CLUUID"
+
+  $JSON = $Payload 
+  try{
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers -ea:4;
+  } catch {$error.clear()
+    sleep 10
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers
+  }
+
+  Return $task
+} 
+
+Function REST-Get-PE-Host-Nics-PRX {
+  Param (
+    [string] $PEClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $HostUUID,
+    [string] $CLUUID
+  )
+
+  write-log -message "Building Credential object"
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Executing Get Hosts Query"
+
+  $URL = "https://$($PEClusterIP):9440/PrismGateway/services/rest/v1/hosts/$($HostUUID)/host_nics?proxyClusterUuid=$CLUUID"
+
+  $JSON = $Payload 
+  try{
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers -ea:4;
+  } catch {$error.clear()
+    sleep 10
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers
+  }
+
+  Return $task
+} 
+
 Function REST-Get-PE-Host-Nics {
   Param (
     [string] $PEClusterIP,
@@ -1496,8 +1557,81 @@ Function REST-Set-VM-Secure-Boot {
   return $task 
 } 
 
+Function REST-Add-VM-RAM-PRX {
+  Param (
+    [Object] $VMDetail,
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $CLUUID,
+    [int] $GBRAM
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Setting '$($VMDetail.name)' to '$($GBRAM)' GB Ram"
+  [int]$MBRam = $GBram * 1024
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)?proxyClusterUuid=$($CLUUID)"
+  write-log -message "using URL $url"
+  $Json = @"
+{
+  "memory_mb": $($MBRam)
+}
+"@ 
+ try {
+    $task1 = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
+
+  } catch {$error.clear()
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    sleep 5
+    $task = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers
+
+  }
+  return $task 
+} 
 
 
+Function REST-Get-VM-Detail-PRX {
+  Param (
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $VMUUID,
+    [string] $CLUUID
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+
+  write-log -message "Executing VM Detail Query using VM UUID '$VMUUID'"
+  write-log -message "Located on Cluster UUID '$CLUUID'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMUUID)?include_vm_disk_config=true&include_vm_nic_config=true&includeVMDiskSizes=true&includeAddressAssignments=true&proxyClusterUuid=$CLUUID"
+
+  try{
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers -ea:4;
+  } catch {$error.clear()
+    sleep 10
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers
+  }
+  write-log -message "We found a VM called '$($task.name)'"
+
+  Return $task
+} 
 
 Function REST-Get-VM-Detail {
   Param (
@@ -1731,7 +1865,66 @@ $Payload= @"
   Return $task
 } 
 
+Function REST-VM-Add-Disk-PRX {
+  Param (
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [Object] $VMDetail,
+    [INT]    $SizeGB,
+    [string] $CLUUID
+  )
 
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+  ## We expect the VM Detail object here
+  write-log -message "Adding a '$($SizeGB)' GB Disk to VM '$($VMDetail.uuid)'"
+
+  $SizeBytes = ((($sizeGB * 1024) * 1024 ) * 1024 )
+  $vmdetail.vm_disk_info | where {$_.disk_address.device_bus -match "scsi" } | % { [array]$iscsi += $_.disk_address.device_index}
+  $FreeIndex = [INT]($iscsi | sort | select -last 1 ) + 1 
+
+  write-log -message "Assigning SCSI index '$($FreeIndex)'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)/disks/attach?proxyClusterUuid=$($CLUUID)"
+
+$Payload= @"
+{
+  "vm_disks": [{
+    "is_cdrom": false,
+    "disk_address": {
+      "device_bus": "scsi",
+      "device_index": $($FreeIndex)
+    },
+    "vm_disk_create": {
+      "storage_container_uuid": "$($vmdetail.vm_disk_info[0].storage_container_uuid)",
+      "size": $SizeBytes
+    }
+  }]
+}
+"@ 
+  if ($SizeBytes -ne 0){
+     try{
+       $task = Invoke-RestMethod -Uri $URL -method "POST" -body $Payload -ContentType 'application/json' -headers $headers -ea:4;
+   
+       write-log -message "Disk has been added" 
+   
+     } catch {$error.clear()
+       sleep 10
+       $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+   
+       $task = Invoke-RestMethod -Uri $URL -method "POST" -body $Payload -ContentType 'application/json' -headers $headers
+     }
+  } else {
+
+    write-log -message "'0' in size..." 
+
+  }
+  Return $task
+} 
 
 Function REST-Set-PE-Network{
   Param (
@@ -3128,13 +3321,10 @@ $Payload= @"
   $JSON = $Payload 
   try{
     $task = Invoke-RestMethod -Uri $URL -method "post" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
-  } catch {$error.clear()
-    if ($silent -eq $false){
-      sleep 10
-      $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
-  
-      $task = Invoke-RestMethod -Uri $URL -method "post" -body $JSON -ContentType 'application/json' -headers $headers
-    }  
+  } catch {
+    sleep 5
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+    $task = Invoke-RestMethod -Uri $URL -method "post" -body $JSON -ContentType 'application/json' -headers $headers
   }
   
   write-log -message "We found '$($task.entities.count)' VMs." -D 2
