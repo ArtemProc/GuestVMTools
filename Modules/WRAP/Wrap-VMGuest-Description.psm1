@@ -4,9 +4,9 @@ Function Wrap-VMGuest-Description {
   ) 
   write-log -message "Gathering More Details"
 
-  [decimal]$SNAPNAME = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the VM Description", "Description Value", "Before Change xyz")
+  [decimal]$SNAPNAME = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the VM Description", "Description Value", $vars.VMDetail.Description)
 
-  REST-Set-VM-Description-PRX`
+  REST-Set-VM-Description-PRX `
     -PCClusterIP $vars.PCClusterIP `
     -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
     -PxClusterPass $vars.PCCreds.getnetworkcredential().password `

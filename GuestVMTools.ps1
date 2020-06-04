@@ -126,7 +126,7 @@ if (!$mode){
   $custom | add-member NoteProperty Description "Generate a report for the VM, host details, output options."
   [array]$Modesobj += $custom
   $custom = New-Object -Type PSObject
-  $custom | add-member NoteProperty Mode "Change Ram"
+  $custom | add-member NoteProperty Mode "Add-Ram"
   $custom | add-member NoteProperty Description "Increase the amount of ram on a running VM"
   [array]$Modesobj += $custom
   $custom = New-Object -Type PSObject
@@ -139,10 +139,18 @@ if (!$mode){
   [array]$Modesobj += $custom  
   if ($target -ne "Local"){
     $custom = New-Object -Type PSObject
-    $custom | add-member NoteProperty Mode "Secure-Boot"
+    $custom | add-member NoteProperty Mode "Enable-SecureBoot"
     $custom | add-member NoteProperty Description "Enable Secure boot on another VM. (powered off state is required)"
     [array]$Modesobj += $custom
-  } 
+  }
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Snapshot-Create"
+  $custom | add-member NoteProperty Description "Create a Normal PE snapshot on the target VM."
+  [array]$Modesobj += $custom
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Set-VM-Description"
+  $custom | add-member NoteProperty Description "Set the VM Description on the target VM."
+  [array]$Modesobj += $custom  
   $mode = ($Modesobj | Out-GridView @GridArguments).mode
 } 
 
