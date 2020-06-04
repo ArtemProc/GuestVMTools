@@ -81,48 +81,47 @@ Function Wrap-VMGuest-SecureBoot {
 
     write-log -message "VM is still not in OFF state. We cannot continue" -sev "ERROR"
 
-  } else {
+  }
 
-    REST-Set-VM-Secure-Boot-PRX `
+  REST-Set-VM-Secure-Boot-PRX `
+    -PCClusterIP $vars.PCClusterIP `
+    -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
+    -PxClusterPass $vars.PCCreds.getnetworkcredential().password `
+    -CLUUID $vars.CLUUID `
+    -VMDetail $VMDetail
+
+  $count = 0
+  do {
+    sleep 30
+    $count++
+    $VMDetail = REST-Get-VM-Detail-PRX `
       -PCClusterIP $vars.PCClusterIP `
       -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
       -PxClusterPass $vars.PCCreds.getnetworkcredential().password `
       -CLUUID $vars.CLUUID `
-      -VMDetail $VMDetail
+      -VMUUID $vars.VMDetail.UUID
+  } until ($VMDetail.boot.secure_boot -eq $true -or $count -ge 3)
 
-   $count = 0
-   do {
-     sleep 30
-     $count++
-     $VMDetail = REST-Get-VM-Detail-PRX `
+  if ($count -ge 3){
+
+   write-log -message "Secure boot is not enabled." -sev "ERROR"
+
+  } 
+
+  [System.Windows.Forms.MessageBox]::Show("Secureboot enable was a success","VM Status", 0)
+  if  ($orgVMDetail.power_state -eq "OFF") {
+
+     write-log -message "VM Was already off, not powering back on." 
+
+  } else {
+     $PowerOn = REST-Set-VM-Power-State-PRX `
        -PCClusterIP $vars.PCClusterIP `
        -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
        -PxClusterPass $vars.PCCreds.getnetworkcredential().password `
        -CLUUID $vars.CLUUID `
-       -VMUUID $vars.VMDetail.UUID
-   } until ($VMDetail.boot.secure_boot -eq $true -or $count -ge 3)
-
-   if ($count -ge 3){
-
-    write-log -message "Secure boot is not enabled." -sev "ERROR"
-
-   } else {
-
-     [System.Windows.Forms.MessageBox]::Show("Secureboot enable was a success","VM Status", 0)
-     if  ($orgVMDetail.power_state -eq "OFF") {
-
-        write-log -message "VM Was already off, not powering back on." 
-
-     } else {
-        $PowerOn = REST-Set-VM-Power-State-PRX `
-          -PCClusterIP $vars.PCClusterIP `
-          -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
-          -PxClusterPass $vars.PCCreds.getnetworkcredential().password `
-          -CLUUID $vars.CLUUID `
-          -VMUUID $vars.VMDetail.UUID 
-          -State "ON"   
-     }
-   }
+       -VMUUID $vars.VMDetail.UUID `
+       -State "ON"   
+  }
 
 }
 Export-ModuleMember *

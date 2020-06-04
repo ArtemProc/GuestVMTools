@@ -45,10 +45,16 @@ Function Get-Folder {
 $folder = Get-folder
 
 $items = Get-ChildItem -Recurse "$($folder)\*.psm1"
+
+write-log -message "Testing Code...."
+
+get-childitem -Recurse "$($folder)\*.psm1" | % {import-module $_.versioninfo.filename -DisableNameChecking;}
+
+
 foreach ($item in $items){
   $content = get-content $item.fullname
   [array]$mainscript += $content
 }
-$main = get-content .\GuestVMTools.ps1
+$main = get-content "$($folder)\GuestVMTools.ps1"
 $mainscript += $main
-$mainscript | where {$_.notmatch "ModuleMember" } | out-file "$($folder)\Compiled.ps1"
+$mainscript | where {$_ -notmatch "ModuleMember" } | out-file "$($folder)\Compiled.ps1"

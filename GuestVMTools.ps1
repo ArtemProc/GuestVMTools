@@ -154,11 +154,13 @@ $vars = @{
 }
 
 switch($mode) {
-   "Report"       { Wrap-VMGuest-Report -Vars $Vars     } 
-   "Change Ram"   { Wrap-VMGuest-Ram -Vars $Vars        } 
-   "Add-Disk"     { Wrap-VMGuest-AddDisk -Vars $vars    }
-   "Extend-Disk"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }
-   "Secure-Boot"  { Wrap-VMGuest-SecureBoot -Vars $Vars }
+   "Report"                { Wrap-VMGuest-Report -Vars $Vars        } 
+   "Add-Ram"               { Wrap-VMGuest-Ram -Vars $Vars           } 
+   "Add-Disk"              { Wrap-VMGuest-AddDisk -Vars $vars       }
+   "Extend-Disk"           { Wrap-VMGuest-ExtendDisk -Vars $Vars    }
+   "Enable-SecureBoot"     { Wrap-VMGuest-SecureBoot -Vars $Vars    }
+   "Snapshot-Create"       { Wrap-VMGuest-Snapshot -Vars $Vars      }
+   "Set-VM-Description"    { Wrap-VMGuest-Description -Vars $Vars   }
 }
 
 exit
