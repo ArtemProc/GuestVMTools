@@ -1,30 +1,48 @@
-
 #Prompt section
-$PCCreds            = get-credential -message "Enter Prism Central Credentials"
+[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') | Out-Null
+Add-Type -AssemblyName PresentationFramework
+$License = [System.Windows.Forms.MessageBox]::Show("Use at your own risk, This software is NOT linked to Nutanix.", "Nutanix License" , 4)
+if ($license -eq "Yes"){
+
+  write-log -message "User accepted the license"
+
+} else {
+
+  write-log -message "User did not accept the license!" -SEV "ERROR"
+
+}
+
+$shell = New-Object -ComObject "Shell.Application"
+$shell.minimizeall()
+
+$PCCreds            = get-credential -message "Enter the PC Credentials, UPN or local account, UI Admin"
+
 $PCClusterIP = [Microsoft.VisualBasic.Interaction]::InputBox("Enter Prism Central IP", "Prism Central IP address", "10.10.0.32")
-$Folder = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the install folder", "Leave PWD for current dir, enter full Git path otherwise.", "PWD")
-$Target = [Microsoft.VisualBasic.Interaction]::InputBox("Local target or Remote", "Local Target will find the local VM, remote will prompt", "Local")
+$Target= [System.Windows.Forms.MessageBox]::Show("Use Local VM as Target?" , "Status" , 4)
+#$Target = [Microsoft.VisualBasic.Interaction]::InputBox("Local Target will find the local VM, remote will prompt", "Local target or Remote", "Local")
 
-
+if ($target -eq "Yes"){
+  $target = "Local"
+}
+$Global:Debug = 1
 $mode = $null #hardcode the mode if you dont want menu prompts
 
+$folder = "PWD"
 #Loading Modules
 if ($Folder -eq "PWD"){
 	$dir = $pwd
 } else {
 	$dir = $Folder
 }
+
 get-childitem $dir -Recurse *.psm1 | % {import-module $_.versioninfo.filename -DisableNameChecking;}
 $allcontent = $null
 get-childitem $($dir) -Recurse *.psm1 | % {$allcontent += get-content $_.versioninfo.filename }
 $functions = ($allcontent | where {$_ -match "Function"}).count
 
-write-log -message "Agentless Guest VM Tools Has been initialized"
 write-log -message "'$($functions)' Functions loaded"
-
 write-log -message "Agentless Guest VM Tools Has been initialized"
-
 
 if ($PSVersionTable.PSVersion.Major -lt 5){
 
@@ -36,6 +54,10 @@ if ($PSVersionTable.PSVersion.Major -lt 5){
 
   PSR-SSL-Fix
 
+}
+
+if ($PCClusterIP -eq "" -or $Target -eq "" -or $Folder -eq "" -or $PCCreds.getnetworkcredential().password -eq $null){
+  write-log -message "User canceled Request" -sev "Error"
 }
 
 write-log -message "Loading All Prism Central VMs"
@@ -135,7 +157,8 @@ switch($mode) {
    "Report"       { Wrap-VMGuest-Report -Vars $Vars     } 
    "Change Ram"   { Wrap-VMGuest-Ram -Vars $Vars        } 
    "Add-Disk"     { Wrap-VMGuest-AddDisk -Vars $vars    }
-   "Remove-Disk"  { Wrap-VMGuest-RemoveDisk -Vars $Vars } 	
    "Extend-Disk"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }
-   "Secure-Boot"  { Wrap-VMGuest-ExtendDisk -Vars $Vars }
+   "Secure-Boot"  { Wrap-VMGuest-SecureBoot -Vars $Vars }
 }
+
+exit

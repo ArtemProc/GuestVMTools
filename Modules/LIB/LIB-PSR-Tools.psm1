@@ -5,6 +5,20 @@ function Get-FunctionName {
     return [string]$(Get-PSCallStack)[$StackNumber].FunctionName
 }
 
+Function Get-Folder {
+    [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")|Out-Null
+
+    $foldername = New-Object System.Windows.Forms.FolderBrowserDialog
+    $foldername.Description = "Select a folder"
+    $foldername.rootfolder = "MyComputer"
+    $foldername.SelectedPath = $initialDirectory
+
+    if($foldername.ShowDialog() -eq "OK")
+    {
+        $folder += $foldername.SelectedPath
+    }
+    return $folder
+}
 
 Function PSR-SSL-Fix {
 

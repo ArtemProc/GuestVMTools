@@ -567,7 +567,35 @@ Function REST-Get-Prx-Networks {
   Return $task
 } 
 
+Function REST-Get-PRX-Containers {
+  Param (
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $CLUUID
+  )
 
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Executing Container List"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v1/containers?proxyClusterUuid=$CLUUID"
+
+  try{
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers -ea:4;
+  } catch {
+    sleep 10
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    $task = Invoke-RestMethod -Uri $URL -method "GET" -headers $headers
+  }
+  write-log -message "We found $($task.entities.count) items."
+
+  Return $task
+} 
 
 Function REST-Get-Containers {
   Param (
@@ -1470,6 +1498,91 @@ Function REST-Set-VM-Power-State {
   return $task 
 } 
 
+
+Function REST-Create-VM-Snapshot-PRX {
+  Param (
+    [string] $VMuuid,
+    [string] $State,
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $VMUUIDLong,
+    [string] $snapname
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Sending Power State '$State' to '$VMuuid'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMuuid)/set_power_state?proxyClusterUuid=$($CLUUID)"
+
+  $Json = @"
+{
+  "snapshotSpecs": [{
+    "vmUuid": "$($VMUUIDLong)",
+    "snapshotName": "$($SNAPNAME)"
+  }]
+}
+"@ 
+  try {
+
+    $task1 = Invoke-RestMethod -Uri $URL -method "POST" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
+    sleep 5
+
+  } catch {$error.clear()
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    sleep 60
+    $task = Invoke-RestMethod -Uri $URL -method "POST" -body $JSON -ContentType 'application/json' -headers $headers
+
+  }
+  return $task 
+} 
+
+Function REST-Set-VM-Power-State-PRX {
+  Param (
+    [string] $VMuuid,
+    [string] $State,
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $CLUUID
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Sending Power State '$State' to '$VMuuid'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMuuid)/set_power_state?proxyClusterUuid=$($CLUUID)"
+
+  $Json = @"
+{"transition":"$($State)"}
+"@ 
+  try {
+
+    $task1 = Invoke-RestMethod -Uri $URL -method "POST" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
+    sleep 5
+
+  } catch {$error.clear()
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    sleep 60
+    $task = Invoke-RestMethod -Uri $URL -method "POST" -body $JSON -ContentType 'application/json' -headers $headers
+
+  }
+  return $task 
+} 
+
 Function REST-Set-VM-Description {
   Param (
     [Object] $VMDetail,
@@ -1488,6 +1601,49 @@ Function REST-Set-VM-Description {
   write-log -message "Setting VM Description on '$($VMDetail.name)'"
 
   $URL = "https://$($PEClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)"
+
+  $Json = @"
+{
+  "name": "$($VMDetail.name)",
+  "description": "$($Description)"
+}
+"@ 
+ try {
+
+    $task1 = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
+
+  } catch {$error.clear()
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    sleep 60
+    $task = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers
+
+  }
+  return $task 
+} 
+
+
+
+Function REST-Set-VM-Description-PRX {
+  Param (
+    [Object] $VMDetail,
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $Description,
+    [string] $cluuid
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Setting VM Description on '$($VMDetail.name)'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)?proxyClusterUuid=$($CLUUID)"
 
   $Json = @"
 {
@@ -1556,6 +1712,51 @@ Function REST-Set-VM-Secure-Boot {
   }
   return $task 
 } 
+
+Function REST-Set-VM-Secure-Boot-PRX {
+  Param (
+    [Object] $VMDetail,
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [string] $CLUUID
+  )
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+
+  write-log -message "Adding secure boot for '$($VMDetail.name)'"
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)?proxyClusterUuid=$($CLUUID)"
+
+  $Json = @"
+{
+  "name": "$($VMDetail.name)",
+  "boot": {
+    "uefi_boot": true,
+    "secure_boot": true
+  },
+  "machine_type": "q35"
+}
+"@ 
+ try {
+
+    $task1 = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers -ea:4;
+
+  } catch {$error.clear()
+
+    $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+
+    sleep 60
+    $task = Invoke-RestMethod -Uri $URL -method "PUT" -body $JSON -ContentType 'application/json' -headers $headers
+
+  }
+  return $task 
+} 
+
 
 Function REST-Add-VM-RAM-PRX {
   Param (
@@ -1715,6 +1916,84 @@ $Payload= @"
   Return $task
 } 
 
+Function REST-VM-Change-Disk-Size-PRX {
+  Param (
+    [string] $PCClusterIP,
+    [string] $PxClusterPass,
+    [string] $PxClusterUser,
+    [Object] $VMDetail,
+    [INT]    $SizeGB,
+    [INT]    $SCSIID,
+    [string] $CLUUID
+  )
+
+  [array]$vmdisks = $VMDetail.vm_disk_info | where {$_.is_cdrom -eq $false -and $_.disk_address.device_bus -eq "SCSI"}
+
+  write-log -message "Building Credential object"
+
+  $credPair = "$($PxClusterUser):$($PxClusterPass)"
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+  $headers = @{ Authorization = "Basic $encodedCredentials" }
+  ## We expect the VM Detail object here
+  write-log -message "Setting '$($SizeGB)' GB Disk to VM '$($VMDetail.uuid)'"
+  
+
+  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)/disks/update?proxyClusterUuid=$($CLUUID)"
+
+  
+  [decimal] $Newsize = ((($sizeGB * 1024) * 1024 ) * 1024 )
+  [array]$vmdisk = $vmdisks | where {$_.disk_address.device_index -eq $SCSIID}
+  if ($vmdisk.count -gt 1){
+    write-log -message "We have more than 1 disk..." -sev "ERROR"
+  }
+
+  [decimal] $Oldsize = $vmdisk.size
+  if ($Oldsize -ge $Newsize){
+
+    Write-log -message "This Function can only increase, old size is '$Oldsize' bites"
+    Write-log -message "Requested size is '$Newsize' bites" -sev "warn"
+    
+  } else {
+
+    Write-log -message "Setting new disk size on VM '$($vmdetail.name)'"
+    Write-log -message "Changing old size '$($Oldsize)' Bites"
+    Write-log -message "Into new size '$($Newsize)' Bites"
+    [string] $flash = $vmdisk.flash_mode_enabled
+    $flash = $flash.tolower()
+
+    $json = @"
+      {
+        "vm_disks": [{
+          "disk_address": {
+            "vmdisk_uuid": "$($vmdisk.disk_address.vmdisk_uuid)",
+            "device_index": $SCSIID,
+            "device_bus": "scsi"
+          },
+          "flash_mode_enabled": $flash,
+          "is_cdrom": false,
+          "is_empty": false,
+          "vm_disk_create": {
+            "storage_container_uuid": "$($vmdisk.storage_container_uuid)",
+            "size": $($Newsize)
+          }
+        }]
+      }
+"@ 
+    try{
+      $task = Invoke-RestMethod -Uri $URL -method "PUT" -body $json -ContentType 'application/json' -headers $headers -ea:4;
+  
+      write-log -message "Disk has been Updated" 
+  
+    } catch {$error.clear()
+      sleep 10
+      $FName = Get-FunctionName;write-log -message "Error Caught on function $FName" -sev "WARN"
+  
+      $task = Invoke-RestMethod -Uri $URL -method "PUT" -body $json -ContentType 'application/json' -headers $headers
+    }
+  } 
+
+  Return $task
+} 
 
 
 Function REST-VM-Change-Disk-Size {
@@ -1872,7 +2151,8 @@ Function REST-VM-Add-Disk-PRX {
     [string] $PxClusterUser,
     [Object] $VMDetail,
     [INT]    $SizeGB,
-    [string] $CLUUID
+    [string] $CLUUID,
+    [string] $containerUUID
   )
 
   write-log -message "Building Credential object"
@@ -1882,6 +2162,7 @@ Function REST-VM-Add-Disk-PRX {
   $headers = @{ Authorization = "Basic $encodedCredentials" }
   ## We expect the VM Detail object here
   write-log -message "Adding a '$($SizeGB)' GB Disk to VM '$($VMDetail.uuid)'"
+  write-log -message "On Cluster '$($CLUUID)'"
 
   $SizeBytes = ((($sizeGB * 1024) * 1024 ) * 1024 )
   $vmdetail.vm_disk_info | where {$_.disk_address.device_bus -match "scsi" } | % { [array]$iscsi += $_.disk_address.device_index}
@@ -1889,22 +2170,26 @@ Function REST-VM-Add-Disk-PRX {
 
   write-log -message "Assigning SCSI index '$($FreeIndex)'"
 
-  $URL = "https://$($PCClusterIP):9440/PrismGateway/services/rest/v2.0/vms/$($VMDetail.uuid)/disks/attach?proxyClusterUuid=$($CLUUID)"
+  $URL = "https://$($PCClusterIP):9440/api/nutanix/v0.8/vms/disks/fanout"
 
 $Payload= @"
-{
-  "vm_disks": [{
+[{
+  "generic_dto": {
+    "vm_disks": [{
     "is_cdrom": false,
     "disk_address": {
       "device_bus": "scsi",
       "device_index": $($FreeIndex)
     },
     "vm_disk_create": {
-      "storage_container_uuid": "$($vmdetail.vm_disk_info[0].storage_container_uuid)",
+      "storage_container_uuid": "$($containerUUID)",
       "size": $SizeBytes
     }
-  }]
-}
+    }],
+    "uuid": "$($VMDetail.uuid)"
+  },
+  "cluster_uuid": "$($CLUUID)"
+}]
 "@ 
   if ($SizeBytes -ne 0){
      try{

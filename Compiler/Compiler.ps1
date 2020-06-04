@@ -1,3 +1,4 @@
+$mainscript = $null
 Function write-log {
   param (
   $message,
@@ -12,7 +13,7 @@ Function write-log {
   } elseif ($sev -eq "ERROR"){
     write-host "'$(get-date -format "dd-MMM-yy HH:mm:ss")' |'ERROR'| $message " -ForegroundColor  Red
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-    [System.Windows.Forms.MessageBox]::Show($message,"GuestVM Tools stopped","ERROR",16)
+    [System.Windows.Forms.MessageBox]::Show($message,"GuestVM Tools stopped",0,16)
     sleep 5
     [Environment]::Exit(1)
   } elseif ($sev -eq "CHAPTER"){
@@ -25,3 +26,29 @@ Function write-log {
     write-host ""
   }
 } 
+
+Function Get-Folder {
+    [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")|Out-Null
+
+    $foldername = New-Object System.Windows.Forms.FolderBrowserDialog
+    $foldername.Description = "Select a folder"
+    $foldername.rootfolder = "MyComputer"
+    $foldername.SelectedPath = $initialDirectory
+
+    if($foldername.ShowDialog() -eq "OK")
+    {
+        $folder += $foldername.SelectedPath
+    }
+    return $folder
+}
+
+$folder = Get-folder
+
+$items = Get-ChildItem -Recurse "$($folder)\*.psm1"
+foreach ($item in $items){
+  $content = get-content $item.fullname
+  [array]$mainscript += $content
+}
+$main = get-content .\GuestVMTools.ps1
+$mainscript += $main
+$mainscript | where {$_.notmatch "ModuleMember" } | out-file "$($folder)\Compiled.ps1"
