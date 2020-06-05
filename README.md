@@ -28,7 +28,7 @@ Please note, this is not official Nutanix software, use at your own risk.
 
 **Report**
 
-![VM Report](./artifacts/GuestVMTools-Report.gif)
+![VM Report](./Artifacts/GuestVMTools-Report.gif)
 
 **Writing config:**
 
