@@ -31,8 +31,7 @@ Please note, this is not official Nutanix software, use at your own risk.
 
 Gets the PE host that this VM belongs too, this only works if the VM is powered on! Using host & VM info it builds a response table.
 
-"HostCPU_Usage","VMGPUs","HostAHV_Ver","VMUEFI","VMCDrom","VMName","HostModel","HostStatus","VMSecureboot","VMDisks","HostPower","HostCores","HostDays_UP","HostRAM","HostRAM_Usage","Hostname"
-"23","False","Nutanix 20190916.158","False","0","Windows-MGT-01","NX-MM3000","NORMAL","False","6","kConnected","8","184","128","38","mm-ahv-pribk-01"
+![VM Report](./Artifacts/ReportOut.bmp)
 
 
 ![VM Report](./Artifacts/GuestVMTools-Report.gif)
