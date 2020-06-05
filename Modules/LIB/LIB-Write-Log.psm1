@@ -12,7 +12,7 @@ Function write-log {
   } elseif ($sev -eq "ERROR"){
     write-host "'$(get-date -format "dd-MMM-yy HH:mm:ss")' |'ERROR'| $message " -ForegroundColor  Red
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-    [System.Windows.Forms.MessageBox]::Show($message,"GuestVM Tools stopped","ERROR",16)
+    [System.Windows.Forms.MessageBox]::Show($message,"GuestVM Tools stopped", 'OK' , 'ERROR')
     sleep 5
     [Environment]::Exit(1)
   } elseif ($sev -eq "CHAPTER"){

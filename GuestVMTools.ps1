@@ -2,14 +2,16 @@
 [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') | Out-Null
 Add-Type -AssemblyName PresentationFramework
-$License = [System.Windows.Forms.MessageBox]::Show("Use at your own risk, This software is NOT linked to Nutanix.", "Nutanix License" , 4)
+$License = [System.Windows.Forms.MessageBox]::Show("Use at your own risk, do you accept?`nThis software is NOT linked to Nutanix.", "Nutanix License" , 4)
 if ($license -eq "Yes"){
 
-  write-log -message "User accepted the license"
+  write "User accepted the license"
 
 } else {
 
-  write-log -message "User did not accept the license!" -SEV "ERROR"
+  [System.Windows.Forms.MessageBox]::Show($message,"User did not accept the license!","STOP",0,16)
+  sleep 5
+  [Environment]::Exit(1)
 
 }
 
@@ -18,7 +20,7 @@ $shell.minimizeall()
 
 $PCCreds            = get-credential -message "Enter the PC Credentials, UPN or local account, UI Admin"
 
-$PCClusterIP = [Microsoft.VisualBasic.Interaction]::InputBox("Enter Prism Central IP", "Prism Central IP address", "10.10.0.32")
+$PCClusterIP = [Microsoft.VisualBasic.Interaction]::InputBox("Enter Prism Central IP", "Prism Central IP address", "")
 $Target= [System.Windows.Forms.MessageBox]::Show("Use Local VM as Target?" , "Status" , 4)
 #$Target = [Microsoft.VisualBasic.Interaction]::InputBox("Local Target will find the local VM, remote will prompt", "Local target or Remote", "Local")
 
@@ -58,6 +60,8 @@ if ($PSVersionTable.PSVersion.Major -lt 5){
 
 if ($PCClusterIP -eq "" -or $Target -eq "" -or $Folder -eq "" -or $PCCreds.getnetworkcredential().password -eq $null){
   write-log -message "User canceled Request" -sev "Error"
+  sleep 5
+  [Environment]::Exit(1)
 }
 
 write-log -message "Loading All Prism Central VMs"
@@ -71,7 +75,8 @@ write-log -message "Creating Custom Object"
   
 [object]$custom = $null
 [array]$customVMs = $null
-$vms.entities | % {
+$self = (get-ciminstance win32_bios | select serialnumber).serialnumber
+$vms.entities | where {$_.metadata.uuid -ne $self } | % {
   $custom = New-Object -Type PSObject
   $custom | add-member NoteProperty Name $_.status.Name
   $custom | add-member NoteProperty ClusterName $_.status.cluster_reference.name
@@ -89,7 +94,7 @@ $PCClusters = REST-Query-PC-Clusters `
 
 if ($target -eq "Local"){
   $VMUUID = (get-ciminstance win32_bios | select serialnumber).serialnumber
-  $CLUUID = ($CustomVMs | where {$_.VMUUID -eq $VMUUID}).ClusterUUID
+  $CLUUID = ($vms.entities | where {$_.metadata.uuid -eq $self }).status.cluster_reference.uuid
 } else {
   $GridArguments = @{
       OutputMode = 'Single'
@@ -142,6 +147,11 @@ if (!$mode){
     $custom | add-member NoteProperty Mode "Enable-SecureBoot"
     $custom | add-member NoteProperty Description "Enable Secure boot on another VM. (powered off state is required)"
     [array]$Modesobj += $custom
+  } else {
+    $custom = New-Object -Type PSObject
+    $custom | add-member NoteProperty Mode "Enable-SecureBootX"
+    $custom | add-member NoteProperty Description "This does not work when the VM is local due to power off requirement"
+    [array]$Modesobj += $custom 
   }
   $custom = New-Object -Type PSObject
   $custom | add-member NoteProperty Mode "Snapshot-Create"
@@ -150,7 +160,15 @@ if (!$mode){
   $custom = New-Object -Type PSObject
   $custom | add-member NoteProperty Mode "Set-VM-Description"
   $custom | add-member NoteProperty Description "Set the VM Description on the target VM."
-  [array]$Modesobj += $custom  
+  [array]$Modesobj += $custom
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Mount-ISO"
+  $custom | add-member NoteProperty Description "Mount an ISO image from its local Prism Element Image Store."
+  [array]$Modesobj += $custom 
+  $custom = New-Object -Type PSObject
+  $custom | add-member NoteProperty Mode "Mount-NGT"
+  $custom | add-member NoteProperty Description "Mount an NGT Tools"
+  [array]$Modesobj += $custom 
   $mode = ($Modesobj | Out-GridView @GridArguments).mode
 } 
 
@@ -169,6 +187,9 @@ switch($mode) {
    "Enable-SecureBoot"     { Wrap-VMGuest-SecureBoot -Vars $Vars    }
    "Snapshot-Create"       { Wrap-VMGuest-Snapshot -Vars $Vars      }
    "Set-VM-Description"    { Wrap-VMGuest-Description -Vars $Vars   }
+   "Mount-ISO"             { Wrap-VMGuest-MountISO -Vars $Vars      }
+   "Mount-NGT"             { Wrap-VMGuest-MountNGT -Vars $Vars      }
+   "Enable-SecureBootX"    { write-log -message "This is not supported when target is local" -sev "ERROR"}
 }
-
+[System.Windows.Forms.MessageBox]::Show("Thank you for using Guest VM Tools!`nSee u next time!" , "Info" , 0)
 exit

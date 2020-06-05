@@ -18,8 +18,8 @@ Function Wrap-VMGuest-ExtendDisk {
     Title      = 'Select the SCSI Disk to extend and click OK'
   }
   $Disk = ($Disksobj | Out-GridView @GridArguments)
-  
-  [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+
+
   [int]$NewSizeGB = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the new disk size in GB", "Add Disk.", "$($Disk.sizeGB)")
   if ($NewSizeGB -lt $Disk.sizeGB){
     do {
@@ -47,7 +47,6 @@ Function Wrap-VMGuest-ExtendDisk {
     $taskstatus = $tasklist.entities | where {$_.id -eq $task.task_Uuid}
   } until ($taskstatus.percentageCompleted -eq 100)
 
-  [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
   [System.Windows.Forms.MessageBox]::Show("Disk Extend task is '$($taskstatus.status)'","Disk Extend",0,64)
   write-log -message "Disk Add has status '$($taskstatus.status)'"
 }

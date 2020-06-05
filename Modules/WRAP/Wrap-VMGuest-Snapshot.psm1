@@ -4,14 +4,14 @@ Function Wrap-VMGuest-Snapshot {
   ) 
   write-log -message "Gathering More Details"
 
-  [decimal]$SNAPNAME = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the snapshotname", "Snapshot Name", "Before Change xyz")
+  [string]$SNAPNAME = [Microsoft.VisualBasic.Interaction]::InputBox("Enter the snapshotname", "Snapshot Name", "Before Change xyz")
 
   REST-Create-VM-Snapshot-PRX `
     -PCClusterIP $vars.PCClusterIP `
     -PxClusterUser $vars.PCCreds.getnetworkcredential().username `
     -PxClusterPass $vars.PCCreds.getnetworkcredential().password `
     -VMUUIDLong "$($vars.CLUUID)::$($vars.VMDetail.UUID)" `
-    -snapname $vars.VMDetail 
+    -snapname $SNAPNAME
 
   [System.Windows.Forms.MessageBox]::Show('Snapshot Created' , "Info" , 0)
 
