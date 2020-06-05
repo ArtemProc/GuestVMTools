@@ -3,7 +3,7 @@ API based Powershell for in-guest tools.
 Compiled as a single executable for 1-click Experience.
 Please note, this is not official Nutanix software, use at your own risk.
 
-##Current Version 1.0.0.0##
+*Current Version 1.0.0.0*
 
 **Requirements**
 - Windows Machine with PowerShell 5
