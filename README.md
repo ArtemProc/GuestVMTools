@@ -3,6 +3,8 @@ API based Powershell for in-guest tools.
 Compiled as a single executable for 1-click Experience.
 Please note, this is not official Nutanix software, use at your own risk.
 
+##Current Version 1.0.0.0##
+
 **Requirements**
 - Windows Machine with PowerShell 5
 - Prism Central Credentials, Local or Directory Based, no SSH access required.
@@ -11,8 +13,7 @@ Please note, this is not official Nutanix software, use at your own risk.
 - a mouse, lol, this tool is designed for UI usage. (powershell also works but still sends UI diaglogs.)
 
 **Capabilties**
-- **Report** 
-Reports the VM Details, on which host its running and host performance.
+- **Report** Reports the VM Details, on which host its running and host performance.
 - **Add-Ram** Only adding Memory is supported regardless of power state.
 - **Add-Disk** Adds a disk to the local or targeted VM.
 - **Extend-Disk** Extends a disk to the local or targeted VM.
@@ -71,9 +72,16 @@ All operations that are required for secure boot.
 Prompts the user several times depending on Power and Present Drives.
 IDE Disks cannot be handled, IDE CDrom drives (multiple) are replaced on user approval.
 Confirms the task by retrieving the secureboot value.
+Works only on targeted VMs, not on local duh.
 
 ![Secure Boot](./Artifacts/GuestVMTools-SecBoot.gif)
 
+**Snapshot-Create**
+
+Creates a Prism Element Based Snapshot. 
+Prompts the user for the description.
+
+![Secure Boot](./Artifacts/GuestVMTools-SecBoot.gif)
 
 
 **End result**
@@ -81,3 +89,5 @@ Confirms the task by retrieving the secureboot value.
 ![Email](Email1.png)
 
 # Detailed Code Info #
+
+Will be added on 1.1 release
