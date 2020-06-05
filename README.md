@@ -79,15 +79,39 @@ Works only on targeted VMs, not on local duh.
 **Snapshot-Create**
 
 Creates a Prism Element Based Snapshot. 
+Prompts the user for the snapshot name.
+
+![Create Snapshot](./Artifacts/GuestVMTools-Snapshot.gif)
+
+**Set-VM-Description**
+
+Creates a Prism Element Based Snapshot. 
 Prompts the user for the description.
 
-![Secure Boot](./Artifacts/GuestVMTools-SecBoot.gif)
+![Set VM Description](./Artifacts/GuestVMTools-Set-VM-Description.gif)
 
+**Mount ISO**
 
-**End result**
+Prompts the user for ISOs present on the local PE of the VM.
+Checks if there is an Empty cd-rom drive.
+Prompts the user to confirm auto eject if no drive is empty.
+Mounts the image as a clone from the image service to the cdrom drive.
+Confirms the task by following hte PC progress monitor.
 
-![Email](Email1.png)
+![Mount ISO](./Artifacts/GuestVMTools-Mount-ISO.gif)
+
+**Mount NGT**
+
+Checks if there is an Empty cd-rom drive.
+Prompts the user to confirm auto eject if no drive is empty.
+Mounts the NGT to the free cdrom drive.
+Confirms the NGT by command output success status.
+
+![Mount ISO](./Artifacts/GuestVMTools-Mount-NGT.gif)
 
 # Detailed Code Info #
 
 Will be added on 1.1 release
+
+**Notes**
+The Executeable was compiled with PS2EXE-GUI v0.5.0.20 by Ingo Karstein, reworked and GUI support by Markus Scholtes
