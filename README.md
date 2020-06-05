@@ -37,7 +37,13 @@ Once generated an option is provided for outputting as CSV.
 
 ![VM Report](./Artifacts/GuestVMTools-Report.gif)
 
-**Writing config:**
+**Add-Ram**
+
+Addition only, adds memory to the running or targeted VM, notthing more.
+Confirms the change by prompting the new value, 
+ if this value is the same your Nutanix cluster cannot assing more.
+
+![VM Report](./Artifacts/GuestVMTools-Add-Ram.gif)
 
 ![Create Config Demo](ps1.gif)
 
