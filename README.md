@@ -11,7 +11,8 @@ Please note, this is not official Nutanix software, use at your own risk.
 - a mouse, lol, this tool is designed for UI usage. (powershell also works but still sends UI diaglogs.)
 
 **Capabilties**
-- **Report** Reports the VM Details, on which host its running and host performance.
+- **Report** 
+Reports the VM Details, on which host its running and host performance.
 - **Add-Ram** Only adding Memory is supported regardless of power state.
 - **Add-Disk** Adds a disk to the local or targeted VM.
 - **Extend-Disk** Extends a disk to the local or targeted VM.
@@ -25,8 +26,7 @@ Please note, this is not official Nutanix software, use at your own risk.
 	1. **Executeable** Use the compiled exe from this github repo, copy and click.
 	2. **Run GuestVMTools.ps1** Please make sure the pwd is changed to the repo before you launch
 
-
-# Detailed Info #
+# Detailed User Info #
 
 **Report**
 
@@ -39,22 +39,45 @@ Once generated an option is provided for outputting as CSV.
 
 **Add-Ram**
 
-Addition only, adds memory to the running or targeted VM, notthing more.
+Addition only, adds memory to the running or targeted VM, nothing more.
 Confirms the change by prompting the new value, 
  if this value is the same your Nutanix cluster cannot assing more.
 
-![VM Report](./Artifacts/GuestVMTools-Add-Ram.gif)
+![Add Ram](./Artifacts/GuestVMTools-Add-Ram.gif)
 
-![Create Config Demo](ps1.gif)
+**Add-Disk**
 
-**Using Scan mode:**
+Addition only, adds a disk to the running or targeted VM, nothing more.
+Prompts for a target container to store the disk.
+Confirms the change by checking the prism task result.
+Currently SCSI Disks are the only supported disks.
 
-![Scan Demo](ps2.gif)
+![Add Disk](./Artifacts/GuestVMTools-Add-Disk2.gif)
 
-**Using Execute mode:**
+**Extend-Disk**
 
-![Execute Demo](ps3.gif)
+Prompts the user for the disks mounted to the target VM.
+Currently SCSI Disks are the only supported disks.
+Prompts the user for the new disk size.
+Confirms the change by checking the prism task result.
+
+![Extend Disk](./Artifacts/GuestVMTools-Extend-Disk.gif)
+
+**Enable-SecureBoot**
+
+Since AOS 5.16 Secureboot is supported, however CLI or API only, there is no UI button yet.
+This tool allows to enable secureboot on any VM, Poweroff, Change IDE drives etc.
+All operations that are required for secure boot.
+Prompts the user several times depending on Power and Present Drives.
+IDE Disks cannot be handled, IDE CDrom drives (multiple) are replaced on user approval.
+Confirms the task by retrieving the secureboot value.
+
+![Secure Boot](./Artifacts/GuestVMTools-SecBoot.gif)
+
+
 
 **End result**
 
 ![Email](Email1.png)
+
+# Detailed Code Info #
