@@ -8,6 +8,7 @@ Please note, this is not official Nutanix software, use at your own risk.
 - Prism Central Credentials, Local or Directory Based, no SSH access required.
 - AOS 5.16 or above for Secure Boot.
 - PC / AOS on 5.9 or above for API V3
+- a mouse, lol, this tool is designed for UI usage. (powershell also works but still sends UI diaglogs.)
 
 **Capabilties**
 - **Report** Reports the VM Details, on which host its running and host performance.
@@ -30,9 +31,9 @@ Please note, this is not official Nutanix software, use at your own risk.
 **Report**
 
 Gets the PE host that this VM belongs too, this only works if the VM is powered on! Using host & VM info it builds a response table.
+Once generated an option is provided for outputting as CSV.
 
-![VM Report](./Artifacts/ReportOut.bmp)
-
+![Report Output](./Artifacts/ReportOut.bmp)
 
 ![VM Report](./Artifacts/GuestVMTools-Report.gif)
 
