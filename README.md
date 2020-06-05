@@ -1,10 +1,11 @@
 # Nutanix Guest VM Tools
 API based Powershell for in-guest tools.
+Compiled as a single executable for 1-click Experience.
 Please note, this is not official Nutanix software, use at your own risk.
 
 **Requirements**
 - Windows Machine with PowerShell 5
-- Prism Central Credentials
+- Prism Central Credentials, Local or Directory Based, no SSH access required.
 - AOS 5.16 or above for Secure Boot.
 - PC / AOS on 5.9 or above for API V3
 
@@ -27,6 +28,12 @@ Please note, this is not official Nutanix software, use at your own risk.
 # Detailed Info #
 
 **Report**
+
+Gets the PE host that this VM belongs too, this only works if the VM is powered on! Using host & VM info it builds a response table.
+
+"HostCPU_Usage","VMGPUs","HostAHV_Ver","VMUEFI","VMCDrom","VMName","HostModel","HostStatus","VMSecureboot","VMDisks","HostPower","HostCores","HostDays_UP","HostRAM","HostRAM_Usage","Hostname"
+"23","False","Nutanix 20190916.158","False","0","Windows-MGT-01","NX-MM3000","NORMAL","False","6","kConnected","8","184","128","38","mm-ahv-pribk-01"
+
 
 ![VM Report](./Artifacts/GuestVMTools-Report.gif)
 
